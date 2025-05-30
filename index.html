@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Farcaster Spam Status Checker</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .main-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .app-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .tagline {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .fid-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .fid-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .check-button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .check-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .check-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .info-panel {
+            background: #f8f9fa;
+            border-left: 4px solid #17a2b8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .info-panel h3 {
+            color: #17a2b8;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+        }
+
+        .label-guide {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .label-guide h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 50px 1fr 80px;
+            gap: 15px;
+            align-items: center;
+            font-size: 0.95rem;
+            margin-top: 10px;
+        }
+
+        .status-badge {
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: white;
+            text-align: center;
+            min-width: 30px;
+        }
+
+        .status-spam { background: #dc3545; }
+        .status-clean { background: #28a745; }
+        .status-unknown { background: #6c757d; }
+
+        .loading-area {
+            display: none;
+            margin: 20px 0;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            width: 0;
+            transition: width 0.3s ease;
+        }
+
+        .progress-info {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .result-area {
+            margin-top: 20px;
+            padding: 25px;
+            border-radius: 12px;
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-spam {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 2px solid #dc3545;
+        }
+
+        .result-clean {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #28a745;
+        }
+
+        .result-not-found {
+            background: linear-gradient(135deg, #e2e3e5 0%, #d6d8db 100%);
+            border: 2px solid #6c757d;
+        }
+
+        .result-loading {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 2px solid #ffc107;
+        }
+
+        .result-error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border: 2px solid #dc3545;
+        }
+
+        .result-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .result-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .result-text {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .details-table {
+            margin: 20px 0;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-key {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .detail-val {
+            color: #666;
+            text-align: right;
+        }
+
+        .spam-indicator {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .indicator-spam {
+            background: #dc3545;
+            color: white;
+        }
+
+        .indicator-clean {
+            background: #28a745;
+            color: white;
+        }
+
+        .page-footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .page-footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .page-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .disclaimer {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.9rem;
+            color: #495057;
+            line-height: 1.6;
+        }
+
+        .disclaimer h4 {
+            color: #495057;
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .disclaimer ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        .disclaimer li {
+            margin-bottom: 5px;
+        }
+
+        .spam-marked {
+            color: #dc3545;
+        }
+
+        .spam-clean {
+            color: #28a745;
+        }
+
+        .spam-unknown {
+            color: #6c757d;
+        }
+
+        .spam-marked, .spam-clean, .spam-unknown {
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .main-container {
+                padding: 20px;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            .status-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                text-align: left;
+            }
+
+            .status-grid > div {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 8px;
+                background: rgba(255,255,255,0.7);
+                border-radius: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="main-container">
+    <div class="header-section">
+        <div class="app-icon">🔍</div>
+        <h1>Farcaster Spam Checker</h1>
+        <div class="tagline">Check if your FID is in the spam database</div>
+    </div>
+
+    <div class="info-panel">
+        <h3>About This Tool</h3>
+        <p>This tool checks if your Farcaster User ID (FID) appears in the public spam list. The data is
+            automatically fetched from the official repository and updated weekly.</p>
+    </div>
+
+    <div class="label-guide">
+        <h4>Binary Label System</h4>
+        <div class="status-grid">
+            <div class="status-badge status-spam">0</div>
+            <div>Likely to engage in spammy behavior</div>
+            <div class="spam-marked spam-bold">SPAM</div>
+
+            <div class="status-badge status-clean">2</div>
+            <div>Unlikely to engage in spammy behavior</div>
+            <div class="spam-clean">CLEAN</div>
+
+            <div class="status-badge status-unknown">?</div>
+            <div>Not in database</div>
+            <div class="spam-unknown">UNKNOWN</div>
+        </div>
+    </div>
+
+    <div class="input-section">
+        <div class="search-box">
+            <input type="number" class="fid-input" id="fidInput"
+                   placeholder="Enter your FID (e.g., 100000)"
+                   min="1"
+                   aria-label="Farcaster ID number"/>
+                <button class="check-button" id="checkButton"> <span id="buttonText">Check Status</span> </button>
+        </div>
+    </div>
+
+    <div class="loading-area" id="loadingArea">
+        <div class="progress-track">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <div class="progress-info" id="progressInfo">Loading data...</div>
+    </div>
+
+    <div id="resultContainer" aria-live="polite"></div>
+
+
+    <div class="page-footer">
+        <p>Data source: <a href="https://github.com/warpcast/labels" target="_blank"
+                           rel="noopener noreferrer nofollow"
+                           aria-label="Opens Warpcast Labels Repository on GitHub in a new tab (external link)">
+            Warpcast Labels
+            Repository</a></p>
+        <p>Last updated: <span id="lastUpdated">Unknown</span></p>
+        <p>For spam appeals, contact <a href="https://farcaster.xyz/v" target="_blank"
+                                        rel="noopener noreferrer nofollow"
+                                        aria-label="Contact Farcaster for spam appeals (opens in new tab)">@v
+            on Farecaster</a></p>
+    </div>
+
+    <div class="disclaimer">
+        <h4>⚠️Important Disclaimers</h4>
+        <ul>
+            <li><strong>Unofficial Tool:</strong> This tool is not affiliated with Farcaster or
+                Warpcast. It's an independent tool.
+            </li>
+            <li><strong>Data Updates:</strong> Farcaster updates their spam labels weekly. Results
+                may not reflect the most current status.
+            </li>
+            <li><strong>No Responsibility:</strong> We are not responsible for why accounts are
+                flagged as spam. This is determined by Farcaster's automated systems.
+            </li>
+            <li><strong>Appeals Process:</strong> If you believe your account was incorrectly flagged, you can report it to Farcaster, contact <a href="https://farcaster.xyz/v" target="_blank"
+                                                     rel="noopener noreferrer nofollow"
+                                                     aria-label="Contact Farcaster for spam appeals (opens in new tab)">@v
+                    on Farcaster</a>
+                directly.
+            </li>
+            <li><strong>Use at Own Risk:</strong> This tool is provided "as is" without warranties.
+                Always verify important information independently.
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    let checkInProgress = false;
+    let lastCheckTime = 0;
+    // Rate limits - adjustable per README.md guidelines
+    const CHECK_COOLDOWN = 3000; // 3 seconds between checks
+    const DAILY_LIMIT = 10; // Daily limit
+    const STORAGE_KEY = 'farcaster_usage_v1';
+    const ESTIMATED_TOTAL_RECORDS = 20000;
+
+    // Load daily usage tracking
+    function getTodayUsage() {
+        try {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) {
+                const data = JSON.parse(stored);
+                const today = new Date().toDateString();
+                if (data.date === today) {
+                    return data.count || 0;
+                }
+            }
+        } catch (e) {
+            console.warn('Storage operation failed:', e.message);
+        }
+        return 0;
+    }
+
+    function incrementUsage() {
+        try {
+            const today = new Date().toDateString();
+            const currentCount = getTodayUsage();
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                date: today,
+                count: currentCount + 1
+            }));
+        } catch (e) {
+            console.warn('Failed to increment usage count:', e.message);
+        }
+    }
+
+    function getResetTime() {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(0, 0, 0, 0);
+        return tomorrow.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    async function runSpamCheck() {
+        if (checkInProgress) return;
+
+        const now = Date.now();
+        const todayUsage = getTodayUsage();
+
+        // Check the daily limit first
+        if (todayUsage >= DAILY_LIMIT) {
+            displayResult('error', '📅', 'Daily limit reached',
+                'You\'ve used all ' + DAILY_LIMIT + ' searches for today. This helps reduce server load on Farcaster\'s systems. Limit resets at ' + getResetTime() + '.');
+            return;
+        }
+
+        // Check cooldown
+        if (now - lastCheckTime < CHECK_COOLDOWN) {
+            const waitTime = Math.ceil((CHECK_COOLDOWN - (now - lastCheckTime)) / 1000);
+            displayResult('error', '⏱️', 'Please wait',
+                'Please wait ' + waitTime + ' seconds between searches. This helps respect Farcaster\'s servers and bandwidth.');
+            return;
+        }
+
+        const fidInput = document.getElementById('fidInput');
+        const resultContainer = document.getElementById('resultContainer');
+        const loadingArea = document.getElementById('loadingArea');
+        const progressBar = document.getElementById('progressBar');
+        const progressInfo = document.getElementById('progressInfo');
+        const checkButton = document.getElementById('checkButton');
+        const buttonText = document.getElementById('buttonText');
+
+        const fidValue = parseInt(fidInput.value);
+
+        if (!fidValue || fidValue <= 0 || fidValue > 999999999) {
+            displayResult('error', '❌', 'Invalid FID', 'Please enter a valid FID number between 1 and 999,999,999.');
+            return;
+        }
+
+        checkInProgress = true;
+        lastCheckTime = now;
+        incrementUsage();
+
+        checkButton.disabled = true;
+        buttonText.textContent = 'Searching...';
+        loadingArea.style.display = 'block';
+        resultContainer.innerHTML = '';
+
+        // Show usage info
+        const remainingSearches = DAILY_LIMIT - todayUsage - 1;
+        progressInfo.textContent = 'Connecting... (' + remainingSearches + ' searches remaining today)';
+
+        //  Configuration for fetching spam data file
+        const GITHUB_USER = 'warpcast';
+        const GITHUB_REPO = 'labels';
+        const FILE_PATH = 'spam.jsonl';
+        const BRANCH = 'main';
+
+        try {
+            const endpoints = [
+                `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${BRANCH}/${FILE_PATH}`,
+                `https://api.allorigins.win/raw?url=https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${BRANCH}/${FILE_PATH}`,
+                `https://corsproxy.io/?https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${BRANCH}/${FILE_PATH}`,
+                `https://cdn.jsdelivr.net/gh/${GITHUB_USER}/${GITHUB_REPO}@${BRANCH}/${FILE_PATH}`
+            ];
+
+            let response = null;
+
+            for (let url of endpoints) {
+                try {
+                    response = await fetch(url);
+                    if (response.ok) break;
+                } catch (e) {
+                    console.error('Error occurred');
+                }
+                continue;
+            }
+
+            if (!response || !response.ok) {
+                throw new Error('Could not connect to data source. Please try again later.');
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let processed = 0;
+            let found = false;
+            let data = null;
+
+            progressInfo.textContent = 'Searching spam database...';
+
+            while (true) {
+                const {done, value} = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, {stream: true});
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
+
+                for (let line of lines) {
+                    if (line.trim()) {
+                        try {
+                            const entry = JSON.parse(line);
+                            processed++;
+
+                            if (processed % 3000 === 0) {
+                                progressBar.style.width = Math.min((processed / ESTIMATED_TOTAL_RECORDS) * 100, 90) + '%';
+                                progressInfo.textContent = 'Searched ' + processed.toLocaleString() + ' records...';
+                            }
+
+                            if (entry.type && entry.type.fid === fidValue) {
+                                found = true;
+                                data = entry;
+                                reader.cancel();
+                                break;
+                            }
+                        } catch (e) {
+                            // Skip bad lines - continue parsing rest of data
+                            console.warn('Skipping malformed line:', e.message);
+                        }
+                    }
+                }
+
+                if (found) break;
+            }
+
+            // Check final buffer
+            if (!found && buffer.trim()) {
+                try {
+                    const entry = JSON.parse(buffer);
+                    if (entry.type && entry.type.fid === fidValue) {
+                        found = true;
+                        data = entry;
+                    }
+                } catch (e) {
+                }
+            }
+
+            progressBar.style.width = '100%';
+            loadingArea.style.display = 'none';
+            if (found && data) {
+                const spamFlag = data.label_value === 0;
+                const cleanFlag = data.label_value === 2;
+
+                let type, icon, title, desc;
+
+                if (spamFlag) {
+                    type = 'spam';
+                    icon = '⚠️';
+                    title = 'FID ' + fidValue + ' is flagged as spam';
+                    desc = 'This account may engage in spammy behavior according to Farcaster\'s models. Some platforms may limit functionality.';
+                } else if (cleanFlag) {
+                    type = 'clean';
+                    icon = '✅';
+                    title = 'FID ' + fidValue + ' is marked clean';
+                    desc = 'This account is not flagged for spam and should have normal platform access.';
+                } else {
+                    type = 'spam';
+                    icon = '❓';
+                    title = 'FID ' + fidValue + ' has unusual status';
+                    desc = 'Label value ' + data.label_value + ' is not standard. This may be legacy data.';
+                }
+
+                displayResult(type, icon, title, desc, {
+                    'Provider': data.provider,
+                    'Target': data.type.target,
+                    'Label Type': data.label_type,
+                    'Label Value': data.label_value,
+                    'Status': spamFlag ? 'SPAM' : cleanFlag ? 'CLEAN' : 'UNKNOWN',
+                    'Records Searched': processed.toLocaleString(),
+                    'Remaining Today': remainingSearches
+                });
+            } else {
+                displayResult('not-found', '❓', 'FID ' + fidValue + ' not in database',
+                    'No spam record found. Account may be new, inactive, or not flagged. Searched ' + processed.toLocaleString() + ' records. You have ' + remainingSearches + ' searches remaining today.');
+            }
+        } catch (error) {
+            loadingArea.style.display = 'none';
+            displayResult('error', '❌', 'Search failed', error.message);
+        } finally {
+            checkInProgress = false;
+            checkButton.disabled = false;
+            buttonText.textContent = 'Check Status';
+        }
+    }
+
+    function displayResult(type, icon, title, description, details = null) {
+        const resultContainer = document.getElementById('resultContainer');
+
+        let detailsSection = '';
+        if (details) {
+            detailsSection = '<div class="details-table">';
+            for (let [key, value] of Object.entries(details)) {
+                let displayValue = value;
+                if (key === 'Status') {
+                    let indicatorClass = '';
+                    if (value === 'SPAM') indicatorClass = 'indicator-spam';
+                    else if (value === 'CLEAN') indicatorClass = 'indicator-clean';
+                    else indicatorClass = 'indicator-unknown';
+
+                    displayValue = '<span class="spam-indicator ' + indicatorClass + '">' + value + '</span>';
+                }
+                detailsSection += '<div class="detail-row">' +
+                    '<span class="detail-key">' + key + ':</span>' +
+                    '<span class="detail-val">' + displayValue + '</span>' +
+                    '</div>';
+            }
+            detailsSection += '</div>';
+        }
+
+        resultContainer.innerHTML = '<div class="result-area result-' + type + '">' +
+            '<span class="result-icon">' + icon + '</span>' +
+            '<div class="result-title">' + title + '</div>' +
+            (description ? '<div class="result-text">' + description + '</div>' : '') +
+            detailsSection +
+            '</div>';
+    }
+
+    document.getElementById('fidInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && !checkInProgress) {
+            runSpamCheck();
+        }
+    });
+
+    document.getElementById('checkButton').addEventListener('click', function() {
+        if (!checkInProgress) {
+            runSpamCheck();
+        }
+    });
+
+    window.onload = function () {
+        document.getElementById('fidInput').focus();
+        // Show current usage on load
+        const usage = getTodayUsage();
+        if (usage > 0) {
+            const remaining = DAILY_LIMIT - usage;
+            console.log('Usage today: ' + usage + '/' + DAILY_LIMIT + ' (' + remaining + ' remaining)');
+        }
+    };
+</script>
+</body>
+</html>
