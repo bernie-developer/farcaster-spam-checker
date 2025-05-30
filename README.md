@@ -1,4 +1,4 @@
-Farcaster Spam Checker
+# Farcaster Spam Checker
 
 Simple tool to check if your FID is flagged in Farcaster's spam database.
 
@@ -10,7 +10,7 @@ Simple tool to check if your FID is flagged in Farcaster's spam database.
 
 This tool downloads data from Farcaster's servers. Please use it responsibly - don't create high-traffic public instances or remove the rate limits.
 
-## How to Use
+## Quick Start
 
 ### Local Server (Recommended)
 ```bash
@@ -28,14 +28,14 @@ php -S localhost:8000         # PHP
 ### Deploy to Hosting Platform
 Upload to Netlify, Vercel, your Cloud Server, VPS, or any web hosting service.
 
-### ⚠️ Local File Limitation
+### CORS Limitation
 Opening `index.html` directly in your browser (file:// protocol) won't work due to CORS restrictions. You need to run it through a web server.
 
-## What It Does
+## Features
 
 - Checks FID against Farcaster's public spam data from [warpcast/labels](https://github.com/warpcast/labels)
 - Shows current binary labels (0=spam, 2=clean)
-- Has built-in rate limiting (10 checks per day, 3 second cooldown)
+- Built-in rate limiting (10 checks per day, 3 second cooldown)
 - Works entirely in browser, no backend needed
 - Uses githubusercontent as primary source with AllOrigins proxy fallback
 
@@ -47,9 +47,9 @@ The tool limits usage to respect Farcaster's bandwidth:
 
 You can adjust these in the code if needed for your use case.
 
-## Guidelines
+## Usage Guidelines
 
-**OK to use for:**
+**Appropriate use:**
 - Personal FID checking
 - Small team use
 - Educational purposes
@@ -59,20 +59,23 @@ You can adjust these in the code if needed for your use case.
 - High-traffic public instances
 - Bulk automated checking
 - Removing rate limits entirely
-- Commercial use without asking
+- Commercial use without permission
 
 ## Customization
 
-Edit `index.html` to change:
+Edit `index.html` to modify:
 - Rate limits: Look for `DAILY_LIMIT` and `CHECK_COOLDOWN`
 - Styling: Modify the CSS in the `<style>` section
 - Text: Update HTML content as needed
 
-## Files
+## Project Structure
 
-- `index.html` - The complete tool
-- `README.md` - This file
-- `LICENSE` - Creative Commons BY-NC 4.0 (NonCommercial)
+```
+farcaster-spam-checker/
+├── index.html          # The complete tool
+├── README.md          # This file
+└── LICENSE            # Creative Commons BY-NC 4.0
+```
 
 ## Contributing
 
@@ -95,6 +98,6 @@ You can use and modify this for personal and educational purposes. Attribution r
 ## Contact
 
 Questions or issues?
-Open a GitHub issue.
-Find me [@holland](https://farcaster.xyz/holland) on Farcaster.
-Or visit my [@Web](https://bernie-builds.netlify.app/)
+- Open a GitHub issue
+- Find me [@holland](https://farcaster.xyz/holland) on Farcaster
+- Visit my [website](https://bernie-builds.netlify.app/)
